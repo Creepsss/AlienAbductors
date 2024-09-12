@@ -17,4 +17,9 @@ class Enemy{
   move(){
     this.x = this.x + this.xdir;
   }
+
+  shiftDown(){
+    this.xdir = -this.xdir;
+    this.y = this.y + 50;
+  }
 }

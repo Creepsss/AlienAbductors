@@ -1,7 +1,7 @@
 class Ship {
-    constructor(x){
+    constructor(x , y){
       this.x = x;
-      
+      this.y = y;
       this.speed = 10;
       
     }
@@ -26,10 +26,9 @@ class Ship {
     }
     
     draw(){
-    let green = color(0,255,0);
+    let green = color(0,100,0);
     fill(green);
     noStroke();
-    rect(this.x,540,60,30);
-    rect(this.x + 20,530, 20, 10)
+    rect(this.x,this.y,60,30);
     }
   }
