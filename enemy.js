@@ -6,12 +6,22 @@ class Enemy{
     this.pts = pointsValue;
     this.radius = 20;
     this.xdir = 1;
+    this.h = 50
     this.isAlive = true
+    this.shoots = false;
   }
 
   draw(){
-      fill(255,0,0);
-      rect(this.x,this.y,25);
+    if(this.shoots){
+      this.h = 100
+      fill(0,0,255);
+      rect(this.x,this.y,this.h);
+      this.pts = 10
+      }else{
+        fill(255,0,0);
+        rect(this.x,this.y,this.h);
+        this.pts = 5
+      }
   }
 
   move(){
@@ -20,6 +30,7 @@ class Enemy{
 
   shiftDown(){
     this.xdir = -this.xdir;
-    this.y = this.y + 50;
+    this.y = this.y + 25;
   }
+
 }
