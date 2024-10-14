@@ -5,15 +5,15 @@ class Enemy{
     this.y = y;
     this.pts = pointsValue;
     this.radius = 20;
-    this.xdir = 1;
-    this.h = 50
+    this.xdir = 2,5;
+    this.h = 30;
     this.isAlive = true
-    this.shoots = false;
+    this.shoots = false;  
   }
 
   draw(){
     if(this.shoots){
-      this.h = 100
+      this.h = 50
       fill(0,0,255);
       rect(this.x,this.y,this.h);
       this.pts = 10

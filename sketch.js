@@ -1,4 +1,9 @@
+
+//https://oege.ie.hva.nl/gd/blok1/highscore/save.php?game=48658786959834
+
+
 let ship;
+let shield;
 let ufo = [];
 let lasers = [];
 let enemy = [];
@@ -10,15 +15,90 @@ let counter = 1;
 let lastShotTime = 0;
 let shootInterval = 1000;
 let frameCounter = 0;
+let howManyShooters = 1
+let dontShow = false
+
+
+let nameInput;
+let playerName;
+
+
+
+function submitScore(name, score){
+  const gameID = 48658786959834;
+
+  const url = `https://oege.ie.hva.nl/gd/blok1/highscore/save.php?game=${gameID}&name=${name}&score=${score}`;
+
+  fetch(url)
+    .then(response => {
+      if (response.ok) {
+        console.log("Score submitted successfully.", url);
+      } else {
+        console.error("Failed to submit score.");
+      }
+    })
+    .catch(error => {
+      console.error("Error submitting score:", error);
+    })
+}
+
+function gameOver() {
+  dontShow = true;
+  background(0);
+  textSize(70);
+  textAlign(CENTER);
+  
+  nameInput = createInput('');
+  nameInput.position(width/2 - 100, height/2 + 150);
+  nameInput.input(typing);
+
+
+  text("Player name: " + playerName, width / 2, height / 2 - 100);
+  text("YOU WON!", width / 2, height / 2);
+  text("Score: " + points, width / 2, height / 2 + 100);
+
+
+  if(key === ' '){
+    submitScore(playerName, points)
+    location.reload()
+  }
+}
+
+
+function lostGame() { 
+  dontShow = true;
+  background(0);
+  textSize(70);
+  textAlign(CENTER);
+
+  nameInput = createInput('');
+  nameInput.position(width/2 - 100, height/2 + 150);
+  nameInput.input(typing);
+
+  
+  text("YOU LOST", width / 2, height / 2);
+  text("Score: " + points, width / 2, height / 2 + 100);
+
+  shootingEnemy.splice(0, 1);
+
+  if(key === ' '){
+    submitScore(playerName, points)
+    location.reload()
+  }
+
+}
+
+function typing() {
+  playerName = this.value()
+}
+
 
 function setup() {
-  createCanvas(800, 600);
-  frameRate(25);
+  createCanvas(800, 600); 
+  frameRate(30);
   rectMode(CENTER)
   bg = loadImage('img/backgroundSpace.jpg')
   ship = new Ship(width/2, 550);
-
-  console.log(height)
 
   //bottom enemy row
   let startX = 175;
@@ -48,8 +128,6 @@ function setup() {
     const randomEnemy = getRandomEnemy(enemy);
     randomEnemy.shoots = true
     shootingEnemy.push(randomEnemy);
-
-    console.log(shootingEnemy)
 
 }
 
@@ -81,7 +159,7 @@ function draw() {
     lasers[las].draw();
     lasers[las].move();
 
-    //collision detection
+    //collision detection for the enemy's
     for(var col = 0; col < enemy.length; col++){
       if(lasers[las].hits(enemy[col])){
         lasers[las].remove();
@@ -90,6 +168,15 @@ function draw() {
       }
       if(lasers[las].y <= -5){
         lasers[las].remove()
+      }
+    }
+
+    //collision detection for the ufo
+    for(var col = 0; col < ufo.length; col++){ 
+      if(lasers[las].hits(ufo[0])){
+        lasers[las].remove();
+        points = points + ufo[0].pts;
+        ufo.splice(0,1)
       }
     }
 
@@ -164,30 +251,32 @@ function draw() {
     }
 
 
+    //check if game is over
+    if(enemy.length <= 0){
+      gameOver();
+    }
+     if(ship.lives <= 0){
+      lostGame();
+    }
+    if(enemy.y <= 600){
+      lostGame();
+    }
 
   updateHUD();
-  //check if game is over
-  if(enemy.length <= 0){
-    gameOver();
-  }
-   if(ship.lives <= 0){
-    lostGame();
-  }
-
 }
 //END OF DRAW FUNC
 
 
 //pressing
  function keyPressed() {
-  if(key === ' '){
+  if(key === ' ' & dontShow === false){
     var laser = new Laser(ship.x, ship.y)
     lasers.push(laser);
   }
 }
 
 function mouseClicked(){
-  if(true){
+  if(true & dontShow === false){
     var laser = new Laser(ship.x, ship.y - 35)
     lasers.push(laser);
   }
@@ -195,7 +284,7 @@ function mouseClicked(){
 
 
 function spawnUfoAndDelete(){
-  ufo.push(new Ufo())
+  ufo.push(new Ufo(50))
 
   setTimeout(() => {
     if(ufo[0]){
@@ -209,32 +298,14 @@ function spawnUfoAndDelete(){
 
 
 function updateHUD(){
-  fill(255);
-  text("Score: " + points, 10, 20);
-  text("Aliens Remaining: " + enemy.length, 70, 20)
-  text("Lives: " + ship.lives, 200, 20);
-  text("FrameCount: " + frameCounter, 255, 20 )
-}
+  if(!dontShow){
+    fill(255);
+    text("Score: " + points, 10, 20);
+    text("Aliens Remaining: " + enemy.length, 70, 20)
+    text("Lives: " + ship.lives, 200, 20);
+    text("FrameCount: " + frameCounter, 255, 20 )
+  }else if (dontShow){
 
-function gameOver(){
-    background(0);
-    textSize(70);
-    textAlign(CENTER);
-    text("YOU WON!", width / 2,height/2)
-    if(mouseIsPressed){
-      shootingEnemy = [];
-      setup();
-    }
-}
-
-function lostGame(){ 
-  fill(255,0,0) 
-  background(0);
-  textSize(70);
-  textAlign(CENTER);
-  text("YOU LOST", width /2, height/ 2);
-  if(mouseIsPressed){
-    shootingEnemy = [];
-    setup();
   }
-}
+  }
+

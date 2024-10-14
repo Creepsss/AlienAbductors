@@ -10,7 +10,7 @@ class Laser{
     draw(){
         fill(0,200,50);
         noStroke();
-        rect(this.x,this.y,this.w, this.h)
+        rect(this.x,this.y,this.w, this.h,40,40,40,40)
     }
 
     move(){

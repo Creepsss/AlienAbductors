@@ -1,9 +1,11 @@
 class Ufo{
     constructor(x){
         this.speed = 10;
+        this.radius = 50
         this.pts = 25;
         this.ufo = null
-        this.x = 50
+        this.x = x
+        this.y = 50
         this.destroy = false
     }
 
@@ -12,9 +14,9 @@ class Ufo{
         fill(255,255,255, 100);
         ellipse(this.x,40,40,40)
         fill(0,240,0)
-        ellipse(this.x,50,80,20,)
+        ellipse(this.x,this.y,80,20,)
         fill(255,200,0, 100)
-        triangle(this.x,50,this.x + 50,100,this.x,100)
+        triangle(this.x,this.y,this.x + this.y,100,this.x,100)
     }
 
     move(){

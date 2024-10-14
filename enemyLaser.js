@@ -3,23 +3,23 @@ class EnemyLaser{
         this.x = x
         this.y = y
         this.w = 10;
-        this.h = 100;
+        this.h = 60;
+        this.speed = 10;
         this.toDelete = false
     }
 
     draw(){
        fill(0,0,255)
-       noStroke()
        rect(this.x,this.y,this.w,this.h) 
     }
 
     move(){
-        this.y = this.y + 10;
+        this.y = this.y + this.speed;
     }
 
     hits(ship){
         var d = dist(this.x, this.y, ship.x, ship.y)
-        if(d < this.h - 85 + ship.h){
+        if(d < this.h - 50 + ship.h){
             return true;
         }else{
             return false
