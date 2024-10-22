@@ -16,20 +16,20 @@ let lastShotTime = 0;
 let shootInterval = 1000;
 let frameCounter = 0;
 let howManyShooters = 1
+let waveCounter = 1
 let dontShow = false
 
+let players = [];
+const gameID = 48658786959834;
 
-let nameInput;
-let playerName;
+let playerName = ''
 
 
-
-function submitScore(name, score){
-  const gameID = 48658786959834;
+async function submitScore(name, score){
 
   const url = `https://oege.ie.hva.nl/gd/blok1/highscore/save.php?game=${gameID}&name=${name}&score=${score}`;
 
-  fetch(url)
+ await fetch(url)
     .then(response => {
       if (response.ok) {
         console.log("Score submitted successfully.", url);
@@ -37,58 +37,93 @@ function submitScore(name, score){
         console.error("Failed to submit score.");
       }
     })
-    .catch(error => {
-      console.error("Error submitting score:", error);
+    .catch(errors => {
+      console.error("Error submitting score:", errors);
     })
+
+  location.reload();
 }
 
-function gameOver() {
+function getLeaderboard(){
+
+  const url = `https://oege.ie.hva.nl/gd/blok1/highscore/load.php?game=${gameID}`;
+
+  fetch(url)
+    .then(response => response.json())
+    .then(data => {
+      players = data
+
+      players.sort((a,b) => b.score - a.score)
+
+      players = players.splice(0,10);
+    })
+    .catch(errors => {
+      console.log("there was a error fetching the players score:", errors);
+    })
+
+}
+
+
+async function lostGame() { 
+  let nameInput;
+  getLeaderboard();
+
   dontShow = true;
   background(0);
-  textSize(70);
   textAlign(CENTER);
-  
+
+  fill(255,0,0)
+  rect(width - 100, 0, 200, 80)
+  fill(255,255,255)
+  text("Leaderboard", width - 100, 25)
+
   nameInput = createInput('');
-  nameInput.position(width/2 - 100, height/2 + 150);
+  nameInput.position(width/2 - 90, height/2 + 150);
   nameInput.input(typing);
 
 
-  text("Player name: " + playerName, width / 2, height / 2 - 100);
-  text("YOU WON!", width / 2, height / 2);
-  text("Score: " + points, width / 2, height / 2 + 100);
+  textSize(50);
+  fill(255,0,0)
+  text("Player name:", width / 2, height / 2 - 120);
+  fill(255)
+  rect(width/2, height/2 -75, 250, 65)
+  fill(0)
+  text(playerName, width / 2, height / 2 - 65);
+  fill(255,0,0);
+  text("YOU LOST", width / 2, height / 2 + 25);
+  text("Score: " + points, width / 2, height / 2+ 75);
+  textSize(20)
+  text("press 'Enter' to play again and to upload score",width/2 ,height/2 + 200)
+  text("press '\' to play again and not upload score",width/2 ,height/2 + 220)
 
 
-  if(key === ' '){
-    submitScore(playerName, points)
-    location.reload()
+  if (players.length > 0) {
+    for (let i = 0; i < players.length; i++) {
+      let player = players[i];
+      textAlign(RIGHT);
+      fill(255,255,255)
+      text(`${i + 1}. ${player.name}: ${player.score}`, 750, 100 + i * 30);
+    }
+  } else {
+    text('Loading...', width / 2, height / 2);
   }
-}
 
-
-function lostGame() { 
-  dontShow = true;
-  background(0);
-  textSize(70);
-  textAlign(CENTER);
-
-  nameInput = createInput('');
-  nameInput.position(width/2 - 100, height/2 + 150);
-  nameInput.input(typing);
-
-  
-  text("YOU LOST", width / 2, height / 2);
-  text("Score: " + points, width / 2, height / 2 + 100);
 
   shootingEnemy.splice(0, 1);
 
-  if(key === ' '){
+  if(keyIsDown(ENTER)){
     submitScore(playerName, points)
+  }
+
+  
+
+  if(keyCode === 220){
     location.reload()
   }
 
 }
 
-function typing() {
+function typing() {  
   playerName = this.value()
 }
 
@@ -117,22 +152,13 @@ function setup() {
       enemy[row * cols + col] = new Enemy(x,y,5);
     }
   }
-
-    //make a enemy shoot
-    function getRandomEnemy(arr){
-      const randomIndex = Math.floor(Math.random() * arr.length)
-      const randomElement = arr[randomIndex];
-      return randomElement
-    }
   
-    const randomEnemy = getRandomEnemy(enemy);
-    randomEnemy.shoots = true
-    shootingEnemy.push(randomEnemy);
-
-}
+    getRandomEnemy(enemy);
+  }
 
 function draw() {
   frameCounter++
+
   background(bg);
   ship.update();
   ship.draw();
@@ -222,15 +248,23 @@ function draw() {
   }
 
     //enemy random shooting interval
-    if(millis() - lastShotTime > shootInterval & shootingEnemy.length === 1){
-        const shoot = shootingEnemy[0];
-  
-        let enemyShooter = new EnemyLaser(shoot.x,shoot.y);
-        enemyLasers.push(enemyShooter);
-    
-        lastShotTime = millis();
-    
-        shootInterval = Math.floor(Math.random() * 2500) + 500
+    if(millis() - lastShotTime > shootInterval){
+      for(let i = 0; i < shootingEnemy.length; i++){
+        const shoot = shootingEnemy[i];
+        
+        if(!shoot.lastShotTime){
+          shoot.lastShotTime = millis();
+          shoot.shootInterval = Math.floor(Math.random() * 2500) + 500
+        }
+
+        if(millis() - shoot.lastShotTime >  shoot.shootInterval){
+          let enemyShooter = new EnemyLaser(shoot.x, shoot.y);
+          enemyLasers.push(enemyShooter);
+
+          shoot.lastShotTime = millis();
+          shoot.shootInterval = Math.floor(Math.random() * 2500) + 500
+        }
+      }
     }
 
 
@@ -239,7 +273,7 @@ function draw() {
 
     //check if frame count is between the 500-900 frames and then clears the framecount
     //then creates a new interval to spawn the ufo
-    if(frameCounter >= nextSpawnFrameUfo){
+    if(frameCounter >= nextSpawnFrameUfo && !dontShow){
       spawnUfoAndDelete();
       frameCounter = 0;
       nextSpawnFrameUfo = Math.floor(Math.random() * (900 - 500 + 1) + 500)
@@ -250,11 +284,14 @@ function draw() {
       ufo[0].move();
     }
 
+    if(enemy.length <= 0){
+      howManyShooters += 1
+      enemy.xdir += 1
+      waveCounter += 1
+      setup()
+    }
 
     //check if game is over
-    if(enemy.length <= 0){
-      gameOver();
-    }
      if(ship.lives <= 0){
       lostGame();
     }
@@ -304,8 +341,19 @@ function updateHUD(){
     text("Aliens Remaining: " + enemy.length, 70, 20)
     text("Lives: " + ship.lives, 200, 20);
     text("FrameCount: " + frameCounter, 255, 20 )
+    text("Wave: " + waveCounter, width - 100, 20)
   }else if (dontShow){
 
   }
   }
+
+  //make a enemy shoot
+  function getRandomEnemy(arr){
+    for(var i = 0; i < howManyShooters; i++){
+         let randomIndex = Math.floor(Math.random() * arr.length)
+         let randomElement = arr[randomIndex];
+         randomElement.shoots = true
+         shootingEnemy.push(randomElement)
+        }
+      }
 

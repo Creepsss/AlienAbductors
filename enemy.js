@@ -5,7 +5,7 @@ class Enemy{
     this.y = y;
     this.pts = pointsValue;
     this.radius = 20;
-    this.xdir = 2,5;
+    this.xdir = 2.5;
     this.h = 30;
     this.isAlive = true
     this.shoots = false;  
